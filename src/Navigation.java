@@ -29,9 +29,10 @@ public class Navigation {
 	public Navigation(Odometer odometer) {
 		this.odo = odometer;
 		this.robot = odo.getTwoWheeledRobot();
-		wheelRadii = 2.125; // wheel radius
+		wheelRadii = 1.978
+				; // wheel radius
 
-		width = 14.9; // width between wheels
+		width = 18.62; // width between wheels
 
 		//set the acceleration to prevent slipping.
 		this.robot.getLeftMotor().setAcceleration(1000);
@@ -59,14 +60,22 @@ public class Navigation {
 		// Until the robot is at its destination within 1 cm, it will move
 		// forward in the heading's direction
 		while (Math.abs(x - this.odo.getX()) >= 1.0 || Math.abs(y - this.odo.getY()) >= 1.0) {
-			this.robot.getLeftMotor().setSpeed(100);
-			this.robot.getRightMotor().setSpeed(100);
-			this.robot.getLeftMotor().forward();
-			this.robot.getRightMotor().forward();
+			
+			//if theta is within the threshold go straight
+			if (Math.abs(this.odo.getAng() - heading) < 4){
+				this.robot.getLeftMotor().setSpeed(100);
+				this.robot.getRightMotor().setSpeed(100);
+				this.robot.getLeftMotor().forward();
+				this.robot.getRightMotor().forward();
+			}
+			//if not adjust theta by simply using turnto.
+			else{
+				turnTo(heading);
+			}
 		}
 		
 		// When it exits the loop, STOP
-		this.robot.stop(1);
+		this.robot.stop();
 		// 1 second cat-nap
 		try {
 			Thread.sleep(1000);
