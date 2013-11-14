@@ -23,7 +23,7 @@ public class Startup {
 		
 		// Initiate the objects for the odometer, the display and odometry correction
 		Odometer odometer = new Odometer(newBot, true);
-		OdometryCorrection odometryCorrection = new OdometryCorrection(odometer, leftLS, rightLS);
+		//OdometryCorrection odometryCorrection = new OdometryCorrection(odometer, leftLS, rightLS);
 
 		LCDInfo lcd = new LCDInfo(odometer);
 
@@ -32,7 +32,7 @@ public class Startup {
 		usl.doLocalization();
 		
 		//after Localization run the odometry correction thread.
-		odometryCorrection.start();
+		//odometryCorrection.start();
 		
 		//use Pathfinder here to perform its task.
 		

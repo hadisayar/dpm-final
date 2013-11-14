@@ -16,7 +16,7 @@ public class USLocalizer {
 		FALLING_EDGE, RISING_EDGE
 	};
 
-	public static int ROTATION_SPEED = 90;
+	public static int ROTATION_SPEED = 200;
 	public static int FORWARD_SPEED = 250;
 	public static int WALL_THRESHOLD = 50;
 
@@ -42,7 +42,7 @@ public class USLocalizer {
 	public void doLocalization() {
 		double[] pos = new double[3];
 		int filterCount = 0;
-		int filterMax = 6; // may vary with battery life apparently
+		int filterMax = 3; // may vary with battery life apparently
 		double initAngle = 0;
 		double angleA = 0, angleB = 0;
 		double gammaA = 0;
