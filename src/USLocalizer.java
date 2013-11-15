@@ -26,6 +26,7 @@ public class USLocalizer {
 	private UltrasonicSensor us;
 	private LocalizationType locType;
 	private Navigation nav;
+	private UltraDisplay ultra;
 	private ObjectDetection oDetect;
 
 	public USLocalizer(Odometer odo, UltrasonicSensor us,
@@ -34,7 +35,7 @@ public class USLocalizer {
 		this.robot = odo.getTwoWheeledRobot();
 		this.us = us;
 		this.locType = locType;
-		this.nav = new Navigation(this.odo, oDetect);
+		this.nav = new Navigation(this.odo, this.oDetect, this.ultra);
 
 		// switch off the ultrasonic sensor
 		// us.off();

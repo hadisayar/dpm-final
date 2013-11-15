@@ -13,13 +13,15 @@ public class Pathfinder {
 	Stack<Point> backPedalStack;
 	Navigation navi;
 	LightLocalizer localizer;
+	UltraDisplay ultra;
 
 	public Pathfinder(Odometer odo, TwoWheeledRobot patbot,
-			ObjectDetection detect, LightLocalizer localizer) {
+			ObjectDetection detect, LightLocalizer localizer, UltraDisplay ultra) {
 		this.odo = odo;
 		this.patbot = patbot;
 		this.detect = detect;
-		this.navi = new Navigation(odo, detect);
+		this.ultra = ultra;
+		this.navi = new Navigation(odo, detect, this.ultra);
 		this.localizer = localizer;
 	}
 
@@ -37,7 +39,7 @@ public class Pathfinder {
 		Stack<Point> courseStack = currentStack;
 		// Builds a stack of coordinates that the robot will run
 		if (goToFinish) {
-			//if it has its tower 
+			// if it has its tower
 			currentX = odo.getX();
 			currentY = odo.getY();
 			stepsReq = (int) Math.floor(Math.abs(finishX - currentX) / 20.0);
@@ -82,31 +84,23 @@ public class Pathfinder {
 		return courseStack;
 	}
 
-	public Stack<Point> avoidObstacle(Stack<Point> currentPath) {
-		currentPath.push(new Point(odo.getX(), odo.getY() + 30.46, false));
-		currentPath.push(new Point(odo.getX()
-				+ Math.cos(Math.toRadians(odo.getAng())) * 60.98, odo.getY(),
-				false));
-		currentPath.push(new Point(odo.getX(), odo.getY() - 30.46, false));
-		return currentPath;
-	}
-
 	public void runCourse(double widthX, double widthY) {
 		this.currentStack = new Stack<Point>();
 		this.currentStack = generatePath(false, finishX, finishY, widthX,
 				widthY, this.currentStack);
 		int i = 0;
 		while (!currentStack.isEmpty()) {
-			if (i % 2 == 0) {
-				localizer.doLocalization();
-			}
-			currentStack = navi.travelTo(currentStack.peek().x, currentStack.peek().y, currentStack);
+				if (i % 2 == 0) {
+					localizer.doLocalization();
+				}
+				currentStack = navi.travelTo(currentStack.peek().x,
+						currentStack.peek().y, 15, currentStack);
 
-			currentStack.peek().setVisited();
-			backPedalStack.push(currentStack.pop());
-			i++;
+				currentStack.peek().setVisited();
+				backPedalStack.push(currentStack.pop());
+				i++;
+			
 		}
 	}
 
-	
 }

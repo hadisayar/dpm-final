@@ -25,6 +25,7 @@ public class Startup {
 		// Initiate the objects for the odometer, the display and odometry
 		// correction
 		Odometer odometer = new Odometer(newBot, true);
+		UltraDisplay usd = new UltraDisplay (us);
 		// OdometryCorrection odometryCorrection = new
 		// OdometryCorrection(odometer, leftLS, rightLS);
 
@@ -41,7 +42,7 @@ public class Startup {
 		// after Localization run the odometry correction thread.
 		// odometryCorrection.start();
 
-		Pathfinder pathfinder = new Pathfinder(odometer, newBot, detect, lsl);
+		Pathfinder pathfinder = new Pathfinder(odometer, newBot, detect, lsl, usd);
 		bluetooth.BluetoothConnection blue = new bluetooth.BluetoothConnection();
 		int[] safeZ = blue.getTransmission().greenZone;
 		int finalX = Math.abs(safeZ[2] - safeZ[0]) / 2;

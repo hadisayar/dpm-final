@@ -19,11 +19,12 @@ public class Odometer implements TimerListener {
 	private Object lock;
 	private double x, y, theta;
 	private double [] oldDH, dDH;
+	private UltraDisplay ultra;
 	
 	public Odometer(TwoWheeledRobot robot, int period, boolean start) {
 		// initialise variables
 		this.robot = robot;
-		this.nav = new Navigation(this, oDetect);
+		this.nav = new Navigation(this, oDetect, ultra);
 		odometerTimer = new Timer(period, this);
 		x = 0.0;
 		y = 0.0;
