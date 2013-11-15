@@ -11,6 +11,7 @@
 import lejos.nxt.Motor;
 import lejos.nxt.NXTRegulatedMotor;
 import lejos.nxt.LCD;
+import java.util.Stack;
 
 public class Navigation {
 	private TwoWheeledRobot robot;
@@ -22,26 +23,25 @@ public class Navigation {
 	private double deltaX = 0, deltaY = 0, deltaTheta = 0, heading;
 	private static final double PI = Math.PI;
 	private double wheelRadii, width;
+	private ObjectDetection oDetect;
 	private double[] pos = new double[3];
 
-	
 	// Navigation constructor
-	public Navigation(Odometer odometer) {
+	public Navigation(Odometer odometer, ObjectDetection oDetect) {
 		this.odo = odometer;
 		this.robot = odo.getTwoWheeledRobot();
-		wheelRadii = 1.978
-				; // wheel radius
+		this.oDetect = oDetect;
+		wheelRadii = 1.978; // wheel radius
 
 		width = 18.62; // width between wheels
 
-		//set the acceleration to prevent slipping.
+		// set the acceleration to prevent slipping.
 		this.robot.getLeftMotor().setAcceleration(1000);
 		this.robot.getRightMotor().setAcceleration(1000);
 	}
 
-
 	// Travel to method which determines the distance that robot needs to travel
-	public void travelTo(double x, double y) {
+	public Stack<Point> travelTo(double x, double y, Stack<Point> currentPath) {
 		// Sets Navigation to true
 		isNav = true;
 		// set the motor speeds
@@ -56,24 +56,25 @@ public class Navigation {
 		heading = Math.atan2(deltaX, deltaY);
 		turnTo(heading);
 		this.odo.getPosition(pos);
-		
+
 		// Until the robot is at its destination within 1 cm, it will move
 		// forward in the heading's direction
-		while (Math.abs(x - this.odo.getX()) >= 1.0 || Math.abs(y - this.odo.getY()) >= 1.0) {
-			
-			//if theta is within the threshold go straight
-			if (Math.abs(this.odo.getAng() - heading) < 4){
+		while (Math.abs(x - this.odo.getX()) >= 1.0
+				|| Math.abs(y - this.odo.getY()) >= 1.0) {
+
+			// if theta is within the threshold go straight
+			if (Math.abs(this.odo.getAng() - heading) < 4) {
 				this.robot.getLeftMotor().setSpeed(100);
 				this.robot.getRightMotor().setSpeed(100);
 				this.robot.getLeftMotor().forward();
 				this.robot.getRightMotor().forward();
 			}
-			//if not adjust theta by simply using turnto.
-			else{
+			// if not adjust theta by simply using turnto.
+			else {
 				turnTo(heading);
 			}
 		}
-		
+
 		// When it exits the loop, STOP
 		this.robot.stop(0);
 		// 1 second cat-nap
@@ -86,7 +87,7 @@ public class Navigation {
 
 		// sets navigation to false when it gets to destination
 		isNav = false;
-
+		return currentPath;
 		// UPDATE LCD
 		// this.odo.getPosition(pos);
 	}
@@ -107,8 +108,10 @@ public class Navigation {
 
 		// Performs rotation
 		deltaTheta = Math.toDegrees(deltaTheta);
-		this.robot.getLeftMotor().rotate(convertAngle(wheelRadii, width, deltaTheta), true);
-		this.robot.getRightMotor().rotate(-convertAngle(wheelRadii, width, deltaTheta), false);
+		this.robot.getLeftMotor().rotate(
+				convertAngle(wheelRadii, width, deltaTheta), true);
+		this.robot.getRightMotor().rotate(
+				-convertAngle(wheelRadii, width, deltaTheta), false);
 	}
 
 	boolean isNavigating() {
