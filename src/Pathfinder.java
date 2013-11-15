@@ -1,7 +1,6 @@
 //This class will contains the algorithm that will be used to navigate through the field of obstacles.
 
 import java.util.Stack;
-
 import lejos.nxt.*;
 
 public class Pathfinder {
@@ -14,9 +13,11 @@ public class Pathfinder {
 	Navigation navi;
 	LightLocalizer localizer;
 	UltraDisplay ultra;
+	NXTRegulatedMotor gateMotor;
 
 	public Pathfinder(Odometer odo, TwoWheeledRobot patbot,
-			ObjectDetection detect, LightLocalizer localizer, UltraDisplay ultra) {
+			ObjectDetection detect, LightLocalizer localizer,
+			UltraDisplay ultra, NXTRegulatedMotor gateMotor) {
 		this.odo = odo;
 		this.patbot = patbot;
 		this.detect = detect;
@@ -37,24 +38,28 @@ public class Pathfinder {
 		double stepX, stepY;
 		int stepsReq;
 		Stack<Point> courseStack = currentStack;
+		Stack<Point> finishStack;
+		widthY *= 30.46;
+		widthX *= 30.46;
 		// Builds a stack of coordinates that the robot will run
 		if (goToFinish) {
 			// if it has its tower
 			currentX = odo.getX();
 			currentY = odo.getY();
+			finishStack = new Stack<Point>();
 			stepsReq = (int) Math.floor(Math.abs(finishX - currentX) / 20.0);
 			stepX = (finishX - currentX) / stepsReq;
 			stepY = (finishY - currentY) / stepsReq;
 			for (int i = 0; i < 2 * stepsReq; i++) {
 				if (i % 2 == 0) {
-					courseStack.push(new Point(finishX - (i / 2) * stepX,
+					finishStack.push(new Point(finishX - (i / 2) * stepX,
 							finishY, false));
 				} else {
-					courseStack.push(new Point(finishX, finishY - (i / 2)
+					finishStack.push(new Point(finishX, finishY - (i / 2)
 							* stepY, false));
 				}
 			}
-
+			courseStack = finishStack;
 		} else {
 			currentY = odo.getY();
 			currentHeading = odo.getAng();
@@ -88,19 +93,36 @@ public class Pathfinder {
 		this.currentStack = new Stack<Point>();
 		this.currentStack = generatePath(false, finishX, finishY, widthX,
 				widthY, this.currentStack);
-		int i = 0;
+		int i = 0, f = 0;
 		while (!currentStack.isEmpty()) {
+			if (!navi.hasBlock()) {
 				if (i % 2 == 0) {
 					localizer.doLocalization();
 				}
 				currentStack = navi.travelTo(currentStack.peek().x,
 						currentStack.peek().y, 15, currentStack);
-
 				currentStack.peek().setVisited();
 				backPedalStack.push(currentStack.pop());
 				i++;
-			
+				f = i;
+			} else {
+				if (f == i) {
+					this.currentStack = generatePath(true, finishX, finishY,
+							widthX, widthY, this.currentStack);
+					f++;
+				} else {
+					if (f % 2 == 0) {
+						localizer.doLocalization();
+					}
+					currentStack = navi.travelTo(currentStack.peek().x,
+							currentStack.peek().y, 15, currentStack);
+					currentStack.peek().setVisited();
+					backPedalStack.push(currentStack.pop());
+					f++;
+				}
+			}
 		}
+		gateMotor.rotate(90);
 	}
 
 }

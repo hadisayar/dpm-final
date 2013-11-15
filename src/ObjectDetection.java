@@ -10,34 +10,31 @@
 
 import lejos.nxt.ColorSensor;
 import lejos.nxt.LCD;
-import lejos.nxt.SensorPort;
-import lejos.nxt.Sound;
+//import lejos.nxt.SensorPort;
+//import lejos.nxt.Sound;
 import lejos.nxt.UltrasonicSensor;
 
 public class ObjectDetection {
 	private ColorSensor cs;
-	private UltrasonicSensor us;
+	//private UltrasonicSensor us;
 	private double redValue, blueValue;
-	private double wallThreshold = 60;
-	private int objectCount;
-	private boolean sameObject;
-	private double x1, x2;
+	//private double wallThreshold = 60;
+	//private int objectCount;
+	//private boolean sameObject;
+	//private double x1, x2;
 
 	// constructor
 	public ObjectDetection(ColorSensor cs, UltrasonicSensor us) {
 		this.cs = cs;
-		this.us = us;
-		this.redValue = redValue;
-		this.blueValue = blueValue;
-		this.objectCount = 0;
-		this.x1 = 0;
-		this.x2 = 0;
-		this.sameObject = false;
+		//this.us = us;
+		//this.redValue = redValue;
+		//this.blueValue = blueValue;
+		//this.objectCount = 0;
+		//this.x1 = 0;
+		//this.x2 = 0;
+		//this.sameObject = false;
 	}
-
 	
-
-
 	// Method must be modified according to the testing data
 	public int identify() {
 		LCD.clear();

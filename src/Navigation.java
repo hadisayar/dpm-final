@@ -10,7 +10,7 @@
 
 import lejos.nxt.Motor;
 import lejos.nxt.NXTRegulatedMotor;
-import lejos.nxt.LCD;
+//import lejos.nxt.LCD;
 
 import java.util.Stack;
 

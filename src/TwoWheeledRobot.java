@@ -8,7 +8,6 @@
  * 
  */
 
-import lejos.nxt.LCD;
 import lejos.nxt.NXTRegulatedMotor;
 
 public class TwoWheeledRobot {

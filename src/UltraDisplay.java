@@ -1,9 +1,7 @@
 /*
  * OdometryDisplay.java
  */
-import lejos.nxt.LCD;
-import lejos.nxt.ColorSensor;
-import lejos.nxt.SensorPort;
+
 import lejos.nxt.UltrasonicSensor;
 
 public class UltraDisplay extends Thread {
@@ -14,7 +12,7 @@ public class UltraDisplay extends Thread {
 	// constructor
 	public UltraDisplay(UltrasonicSensor us) {
 		this.us = us;
-		this.distance = distance;
+		//this.distance = distance;
 	}
 
 	// run method (required for Thread)

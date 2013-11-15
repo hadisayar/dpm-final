@@ -7,15 +7,20 @@ import lejos.nxt.*;
 public class Startup {
 	public static void main(String[] args) {
 
+		bluetooth.BluetoothConnection blue = new bluetooth.BluetoothConnection();
+		int[] safeZ = blue.getTransmission().greenZone;
+		Sound.systemSound(false, 2);;
+		LCD.clear();
+		
 		TwoWheeledRobot newBot = new TwoWheeledRobot(Motor.A, Motor.B);
-
+		NXTRegulatedMotor gateMotor = Motor.C;
 		// Retrieve the bluetooth signal and identify if the robot will be a
 		// builder or a garbage collector
 
 		// initiate the two sensors that will be taken in as input for the
 		// odometry correction
 		final ColorSensor leftLS = new ColorSensor(SensorPort.S1);
-		final ColorSensor rightLS = new ColorSensor(SensorPort.S2);
+		//final ColorSensor rightLS = new ColorSensor(SensorPort.S2);
 
 		// ultrasonic sensor
 		final UltrasonicSensor us = new UltrasonicSensor(SensorPort.S3);
@@ -30,7 +35,7 @@ public class Startup {
 		// OdometryCorrection(odometer, leftLS, rightLS);
 
 		LCDInfo lcd = new LCDInfo(odometer);
-
+		
 		ObjectDetection detect = new ObjectDetection(detectionLS, us);
 
 		// initiate the localization object and perform the localization.
@@ -42,9 +47,8 @@ public class Startup {
 		// after Localization run the odometry correction thread.
 		// odometryCorrection.start();
 
-		Pathfinder pathfinder = new Pathfinder(odometer, newBot, detect, lsl, usd);
-		bluetooth.BluetoothConnection blue = new bluetooth.BluetoothConnection();
-		int[] safeZ = blue.getTransmission().greenZone;
+		Pathfinder pathfinder = new Pathfinder(odometer, newBot, detect, lsl, usd, gateMotor);
+		
 		int finalX = Math.abs(safeZ[2] - safeZ[0]) / 2;
 		int finalY = Math.abs(safeZ[3] - safeZ[1]) / 2;
 
