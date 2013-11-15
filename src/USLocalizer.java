@@ -16,7 +16,7 @@ public class USLocalizer {
 		FALLING_EDGE, RISING_EDGE
 	};
 
-	public static int ROTATION_SPEED = 90;
+	public static int ROTATION_SPEED = 200;
 	public static int FORWARD_SPEED = 250;
 	public static int WALL_THRESHOLD = 50;
 
@@ -26,6 +26,8 @@ public class USLocalizer {
 	private UltrasonicSensor us;
 	private LocalizationType locType;
 	private Navigation nav;
+	private UltraDisplay ultra;
+	private ObjectDetection oDetect;
 
 	public USLocalizer(Odometer odo, UltrasonicSensor us,
 			LocalizationType locType) {
@@ -33,7 +35,7 @@ public class USLocalizer {
 		this.robot = odo.getTwoWheeledRobot();
 		this.us = us;
 		this.locType = locType;
-		this.nav = new Navigation(this.odo);
+		this.nav = new Navigation(this.odo, this.oDetect, this.ultra);
 
 		// switch off the ultrasonic sensor
 		// us.off();
@@ -42,7 +44,7 @@ public class USLocalizer {
 	public void doLocalization() {
 		double[] pos = new double[3];
 		int filterCount = 0;
-		int filterMax = 6; // may vary with battery life apparently
+		int filterMax = 3; // may vary with battery life apparently
 		double initAngle = 0;
 		double angleA = 0, angleB = 0;
 		double gammaA = 0;
