@@ -71,32 +71,29 @@ public class Navigation {
 				|| Math.abs(y - this.odo.getY()) >= 1.0) {
 
 			// if theta is within the threshold go straight
-			if (Math.abs(this.odo.getAng() - heading) < 4) {
+			//if (Math.abs(this.odo.getAng() - heading) < 4) {
 				this.robot.getLeftMotor().setSpeed(100);
 				this.robot.getRightMotor().setSpeed(100);
 				this.robot.getLeftMotor().forward();
 				this.robot.getRightMotor().forward();
-			}
+			//}
 			// if not adjust theta by simply using turnto.
-			else {
-				turnTo(heading);
-			}
+			//else {
+				//turnTo(heading);
+			//}
 			if (this.ultra.getDist() < sensorThreshold) {
 				double firstHeading = this.odo.getAng();
 				double finalHeading = 0;
 				int objectI = this.oDetect.identify();
-				while (objectI == 2 || (finalHeading - firstHeading) < 10) {
-					turnTo(Math.toRadians((this.odo.getAng() - 20.0)));
-					finalHeading = this.odo.getAng();
-					objectI = this.oDetect.identify();
-				}
+				turnTo(Math.toRadians((this.odo.getAng() - 20.0)));
+				finalHeading = this.odo.getAng();
+				objectI = this.oDetect.identify();
+				turnTo(Math.toRadians(firstHeading));
 				if (objectI == 1) {
 					double turnToHeading = this.odo.getAng() + 35.0;
 					// turnTo(Math.toRadians((this.odo.getAng() + 35.0)));
 					currentPath.push(new Point(this.odo.getX() + 30
-							* Math.cos(Math.toRadians(turnToHeading)), this.odo
-							.getY()
-							+ 30
+							* Math.cos(Math.toRadians(turnToHeading)), this.odo.getY() + 30
 							* Math.sin(Math.toRadians(turnToHeading)), false));
 					yesItHasBlock = true;
 					break;
@@ -107,9 +104,9 @@ public class Navigation {
 			}
 
 			// if not adjust theta by simply using turnto.
-			else {
-				turnTo(heading);
-			}
+			//else {
+				//turnTo(heading);
+			//}
 		}
 
 		// When it exits the loop, STOP

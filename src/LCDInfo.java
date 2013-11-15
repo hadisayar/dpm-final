@@ -24,7 +24,7 @@ public class LCDInfo implements TimerListener{
 	
 	public void timedOut() { 
 		odo.getPosition(pos);
-		//LCD.clear();
+		LCD.clear();
 		LCD.drawString("X: ", 0, 0);
 		LCD.drawString("Y: ", 0, 1);
 		LCD.drawString("H: ", 0, 2);

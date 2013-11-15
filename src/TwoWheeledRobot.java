@@ -98,22 +98,8 @@ public class TwoWheeledRobot {
 
 	// stop method
 	public void stop(int f) {
-		if (f % 2 == 0) {
-			leftMotor.setAcceleration(6000);
-			rightMotor.setAcceleration(15000);
 			leftMotor.stop();
 			rightMotor.stop();
-			leftMotor.setAcceleration(300);
-			rightMotor.setAcceleration(300);
-		} else {
-			rightMotor.setAcceleration(6000);
-			leftMotor.setAcceleration(15000);
-			rightMotor.stop();
-			leftMotor.stop();
-			rightMotor.setAcceleration(300);
-			leftMotor.setAcceleration(300);
-
-		}
 	}
 
 	// Added two methods to rotate the robot either Clockwise or CountClockwise
