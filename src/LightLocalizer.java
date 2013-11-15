@@ -25,6 +25,8 @@ public class LightLocalizer {
 	private double x = 0;
 	private double y = 0;
 	private double deltaThetaY, deltaThetaX;
+	private UltraDisplay ultra;
+	
 	private final Stack<Point> emptyStack = new Stack<Point>();
 
 	
@@ -32,14 +34,14 @@ public class LightLocalizer {
 		this.odo = odo;
 		this.robot = odo.getTwoWheeledRobot();
 		this.ls = ls;
-		this.nav = new Navigation(odo, oDetect);
+		this.nav = new Navigation(odo, oDetect, ultra);
 		// turn on the light
 		ls.setFloodlight(true);
 	}
 
 	public void doLocalization() {
 		// drive to location listed in tutorial
-		nav.travelTo(Math.sqrt(50), Math.sqrt(50), emptyStack);
+		nav.travelTo(Math.sqrt(50), Math.sqrt(50), 15, emptyStack);
 
 
 		// start rotating and clock all 4 gridlines
@@ -97,7 +99,7 @@ public class LightLocalizer {
 				new boolean[] { true, true, true });
 		
 		//travel to the negative values of x and y to get to the actual origin
-		this.nav.travelTo(-x, -y, emptyStack);
+		this.nav.travelTo(-x, -y, 15, emptyStack);
 		//adjust the angle so that the the robot facing the y direction
 		nav.turnTo(Math.toRadians(0));
 		

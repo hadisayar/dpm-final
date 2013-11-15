@@ -41,13 +41,15 @@ public class Navigation {
 		width = 18.62; // width between wheels
 
 		// set the acceleration to prevent slipping.
-		this.robot.getLeftMotor().setAcceleration(1000);
-		this.robot.getRightMotor().setAcceleration(1000);
 	}
 
 	// Travel to method which determines the distance that robot needs to travel
 	public Stack<Point> travelTo(double x, double y, int sensorThreshold,
 			Stack<Point> currentPath) {
+
+		// Travel to method which determines the distance that robot needs to
+		// travel
+
 		// Sets Navigation to true
 		isNav = true;
 		// set the motor speeds
@@ -103,6 +105,11 @@ public class Navigation {
 					break;
 				}
 			}
+
+			// if not adjust theta by simply using turnto.
+			else {
+				turnTo(heading);
+			}
 		}
 
 		// When it exits the loop, STOP
@@ -153,6 +160,7 @@ public class Navigation {
 
 		// Performs rotation
 		deltaTheta = Math.toDegrees(deltaTheta);
+
 		this.robot.getLeftMotor().rotate(
 				convertAngle(wheelRadii, width, deltaTheta), true);
 		this.robot.getRightMotor().rotate(
