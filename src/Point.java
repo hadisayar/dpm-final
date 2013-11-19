@@ -12,4 +12,8 @@ public class Point {
 	public void setVisited() {
 		this.visited = true;
 	}
+
+	public String pointToString() {
+		return "[" + this.x + "," + this.y + "," + this.visited + "]";
+	}
 }

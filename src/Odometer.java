@@ -24,7 +24,7 @@ public class Odometer implements TimerListener {
 	public Odometer(TwoWheeledRobot robot, int period, boolean start) {
 		// initialise variables
 		this.robot = robot;
-		this.nav = new Navigation(this, oDetect, ultra);
+		this.nav = new Navigation(this/*, oDetect, ultra*/);
 		odometerTimer = new Timer(period, this);
 		x = 0.0;
 		y = 0.0;

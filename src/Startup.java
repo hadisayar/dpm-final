@@ -7,18 +7,19 @@ import lejos.nxt.*;
 public class Startup {
 	public static void main(String[] args) {
 		boolean useBluetooth = true;
-		double finalX = 5.5, finalY = 5.5;
 		
+		double finalX = 2, finalY = 7;
+		/*
 		if (useBluetooth) {
 			bluetooth.BluetoothConnection blue = new bluetooth.BluetoothConnection();
 			int[] safeZ = blue.getTransmission().greenZone;
 			Sound.systemSound(false, 2);
 			finalX = Math.abs(safeZ[2] - safeZ[0]) / 2;
 			finalY = Math.abs(safeZ[3] - safeZ[1]) / 2;
-		}
+		}*/
 		
 		LCD.clear();
-		//Button.waitForAnyPress();
+		Button.waitForAnyPress();
 		
 		TwoWheeledRobot newBot = new TwoWheeledRobot(Motor.A, Motor.B);
 		NXTRegulatedMotor gateMotor = Motor.C;
@@ -42,30 +43,30 @@ public class Startup {
 		// OdometryCorrection(odometer, leftLS, rightLS);
 
 		LCDInfo lcd = new LCDInfo(odometer);
-
+		
 		ObjectDetection detect = new ObjectDetection(detectionLS, us);
 
 		// initiate the localization object and perform the localization.
-		USLocalizer usl = new USLocalizer(odometer, us,
+		/*USLocalizer usl = new USLocalizer(odometer, us,
 				USLocalizer.LocalizationType.FALLING_EDGE);
-		usl.doLocalization();
+		usl.doLocalization();*/
 		UltrasonicSensor us2 = new UltrasonicSensor(SensorPort.S3);
 		UltraDisplay usd = new UltraDisplay(us2);
-		usd.start();
-		Navigation turn = new Navigation(odometer,detect, usd);
-		turn.turnTo(Math.toRadians(-70));
+		//usd.start();
+		//Navigation turn = new Navigation(odometer,detect, usd);
+		//turn.turnTo(Math.toRadians(-70));
 
-		LightLocalizer lsl = new LightLocalizer(odometer, leftLS);
-		lsl.doLocalization();
+		//LightLocalizer lsl = new LightLocalizer(odometer, leftLS);
+		//lsl.doLocalization();
 		
-		Pathfinder pathfinder = new Pathfinder(odometer, newBot, detect, /*lsl,*/
+		Wrangler pathfinder = new Wrangler(odometer, newBot, detect, /*lsl,*/
 				usd, gateMotor);
 
 		// use Pathfinder here to perform its task.
 		//newBot.stop(0);
-		odometer.setTheta(0);
-		pathfinder.setFinal(finalX, finalY);
-		pathfinder.runCourse(7, 7);
+		//odometer.setTheta(0);
+		//pathfinder.setFinal(finalX, finalY);
+		pathfinder.runSimpleCourse();
 	}
 
 }

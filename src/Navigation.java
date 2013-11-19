@@ -10,8 +10,7 @@
 
 import lejos.nxt.Motor;
 import lejos.nxt.NXTRegulatedMotor;
-//import lejos.nxt.LCD;
-
+import lejos.nxt.LCD;
 import java.util.Stack;
 
 public class Navigation {
@@ -24,36 +23,32 @@ public class Navigation {
 	private double deltaX = 0, deltaY = 0, deltaTheta = 0, heading;
 	private static final double PI = Math.PI;
 	private double wheelRadii, width;
-	private ObjectDetection oDetect;
-	UltraDisplay ultra;
 	private double[] pos = new double[3];
-	private boolean yesItHasBlock = false;
 
+	
 	// Navigation constructor
-	public Navigation(Odometer odometer, ObjectDetection oDetect,
-			UltraDisplay ultra) {
+	public Navigation(Odometer odometer) {
 		this.odo = odometer;
 		this.robot = odo.getTwoWheeledRobot();
-		this.oDetect = oDetect;
-		this.ultra = ultra;
-		wheelRadii = 1.978; // wheel radius
+		wheelRadii = 2.125; // wheel radius
 
-		width = 18.62; // width between wheels
+		width = 14.9; // width between wheels
 
-		// set the acceleration to prevent slipping.
+		//set the acceleration to prevent slipping.
+		this.robot.getLeftMotor().setAcceleration(1000);
+		this.robot.getRightMotor().setAcceleration(1000);
 	}
 
+
+	public boolean hasBlock(){
+		return false;
+	}
 	// Travel to method which determines the distance that robot needs to travel
-	public Stack<Point> travelTo(double x, double y, int sensorThreshold,
-			Stack<Point> currentPath) {
-
-		// Travel to method which determines the distance that robot needs to
-		// travel
-
+	public Stack<Point> travelTo(double x, double y, int threshold, Stack<Point> inputStack) {
 		// Sets Navigation to true
 		isNav = true;
 		// set the motor speeds
-		this.robot.setForwardSpeed(250);
+		this.robot.setForwardSpeed(150);
 		// clear and write to the LCD
 		odo.getPosition(pos);
 		// Calculate the heading of the robot and turn towards it
@@ -64,51 +59,16 @@ public class Navigation {
 		heading = Math.atan2(deltaX, deltaY);
 		turnTo(heading);
 		this.odo.getPosition(pos);
-
+		
 		// Until the robot is at its destination within 1 cm, it will move
 		// forward in the heading's direction
-		while (Math.abs(x - this.odo.getX()) >= 1.0
-				|| Math.abs(y - this.odo.getY()) >= 1.0) {
-
-			// if theta is within the threshold go straight
-			//if (Math.abs(this.odo.getAng() - heading) < 4) {
-				this.robot.getLeftMotor().setSpeed(100);
-				this.robot.getRightMotor().setSpeed(100);
-				this.robot.getLeftMotor().forward();
-				this.robot.getRightMotor().forward();
-			//}
-			// if not adjust theta by simply using turnto.
-			//else {
-				//turnTo(heading);
-			//}
-			if (this.ultra.getDist() < sensorThreshold) {
-				double firstHeading = this.odo.getAng();
-				double finalHeading = 0;
-				int objectI = this.oDetect.identify();
-				turnTo(Math.toRadians((this.odo.getAng() - 20.0)));
-				finalHeading = this.odo.getAng();
-				objectI = this.oDetect.identify();
-				turnTo(Math.toRadians(firstHeading));
-				if (objectI == 1) {
-					double turnToHeading = this.odo.getAng() + 35.0;
-					// turnTo(Math.toRadians((this.odo.getAng() + 35.0)));
-					currentPath.push(new Point(this.odo.getX() + 30
-							* Math.cos(Math.toRadians(turnToHeading)), this.odo.getY() + 30
-							* Math.sin(Math.toRadians(turnToHeading)), false));
-					yesItHasBlock = true;
-					break;
-				} else if (objectI == 2) {
-					currentPath = avoidObstacle(currentPath);
-					break;
-				}
-			}
-
-			// if not adjust theta by simply using turnto.
-			//else {
-				//turnTo(heading);
-			//}
+		while (Math.abs(x - this.odo.getX()) >= 1.0 || Math.abs(y - this.odo.getY()) >= 1.0) {
+			this.robot.getLeftMotor().setSpeed(200);
+			this.robot.getRightMotor().setSpeed(200);
+			this.robot.getLeftMotor().forward();
+			this.robot.getRightMotor().forward();
 		}
-
+		
 		// When it exits the loop, STOP
 		this.robot.stop(0);
 		// 1 second cat-nap
@@ -121,24 +81,10 @@ public class Navigation {
 
 		// sets navigation to false when it gets to destination
 		isNav = false;
-		return currentPath;
+
 		// UPDATE LCD
 		// this.odo.getPosition(pos);
-	}
-
-	public boolean hasBlock() {
-		return this.yesItHasBlock;
-	}
-
-	public Stack<Point> avoidObstacle(Stack<Point> currentPath) {
-		currentPath.push(new Point(this.odo.getX(), this.odo.getY() + 30.46,
-				false));
-		currentPath.push(new Point(this.odo.getX()
-				+ Math.cos(Math.toRadians(odo.getAng())) * 60.98, this.odo
-				.getY(), false));
-		currentPath.push(new Point(this.odo.getX(), this.odo.getY() - 30.46,
-				false));
-		return currentPath;
+		return inputStack;
 	}
 
 	public void turnTo(double theta) {
@@ -157,11 +103,8 @@ public class Navigation {
 
 		// Performs rotation
 		deltaTheta = Math.toDegrees(deltaTheta);
-
-		this.robot.getLeftMotor().rotate(
-				convertAngle(wheelRadii, width, deltaTheta), true);
-		this.robot.getRightMotor().rotate(
-				-convertAngle(wheelRadii, width, deltaTheta), false);
+		this.robot.getLeftMotor().rotate(convertAngle(wheelRadii, width, deltaTheta), true);
+		this.robot.getRightMotor().rotate(-convertAngle(wheelRadii, width, deltaTheta), false);
 	}
 
 	boolean isNavigating() {

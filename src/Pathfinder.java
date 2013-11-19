@@ -16,14 +16,14 @@ public class Pathfinder {
 	NXTRegulatedMotor gateMotor;
 
 	public Pathfinder(Odometer odo, TwoWheeledRobot patbot,
-			ObjectDetection detect, //LightLocalizer localizer,
+			ObjectDetection detect, // LightLocalizer localizer,
 			UltraDisplay ultra, NXTRegulatedMotor gateMotor) {
 		this.odo = odo;
 		this.patbot = patbot;
 		this.detect = detect;
 		this.ultra = ultra;
-		this.navi = new Navigation(this.odo, this.detect, this.ultra);
-	//	this.localizer = localizer;
+		this.navi = new Navigation(this.odo/*, this.detect, this.ultra*/);
+		// this.localizer = localizer;
 	}
 
 	public void setFinal(int finishX, int finishY) {
@@ -54,19 +54,21 @@ public class Pathfinder {
 				if (i % 2 == 0) {
 					finishStack.push(new Point(finishX + (i / 2) * stepX,
 							finishY, false));
-					finishX = finishX + (i/2) * stepX;
+					finishX = finishX + (i / 2) * stepX;
 				} else {
 					finishStack.push(new Point(finishX, finishY + (i / 2)
 							* stepY, false));
-					finishY = finishY + (i/2) * stepY;
+					finishY = finishY + (i / 2) * stepY;
 				}
 			}
 			courseStack = finishStack;
 		} else {
 			currentY = odo.getY();
 			currentHeading = odo.getAng();
+			LCD.drawString("In Generate Path", 0, 4);
+			LCD.drawString("Most rec:", 0, 5);
 			stepsReq = (int) Math.floor(Math.abs(widthY - currentY) / 30.46);
-			//int stepsReqX = (int) Math.floor(Math.abs(widthX) / 30.46);
+			// int stepsReqX = (int) Math.floor(Math.abs(widthX) / 30.46);
 			stepY = (finishY - currentY) / stepsReq;
 			int i;
 			if (currentHeading < 90 || currentHeading >= 270) {
@@ -78,13 +80,16 @@ public class Pathfinder {
 				if (f % 2 == 0) {
 					courseStack.push(new Point(0, widthY + f / 2 * stepY
 							- 30.46, false));
-					courseStack
-							.push(new Point(0, widthY + f / 2 * stepY, false));
+					courseStack.push(new Point(0, widthY + f / 2 * stepY, false));
+					LCD.drawInt(0, 10, 5);
+					LCD.drawInt((int)(widthY + f/2*stepY), 12, 5);
 				} else {
 					courseStack.push(new Point(widthX, widthY + f / 2 * stepY
 							- 30.46, false));
 					courseStack.push(new Point(widthX, widthY + f / 2 * stepY,
 							false));
+					LCD.drawInt((int)widthX, 10, 5);
+					LCD.drawInt((int)(widthY + f/2*stepY), 12, 5);
 				}
 			}
 		}
@@ -99,14 +104,16 @@ public class Pathfinder {
 		int i = 0, f = 0;
 		while (!currentStack.isEmpty()) {
 			if (!navi.hasBlock()) {
-				currentStack = navi.travelTo(currentStack.peek().x, currentStack.peek().y, 15, currentStack);
+				currentStack = navi.travelTo(currentStack.peek().x,
+						currentStack.peek().y, 15, currentStack);
 				currentStack.peek().setVisited();
 				backPedalStack.push(currentStack.pop());
 				i++;
 				f = i;
 			} else {
 				if (f == i) {
-					this.currentStack = generatePath(true, finishX, finishY, widthX, widthY, this.currentStack);
+					this.currentStack = generatePath(true, finishX, finishY,
+							widthX, widthY, this.currentStack);
 					f++;
 				} else {
 					if ((widthX - currentStack.peek().x) < -15
@@ -123,6 +130,29 @@ public class Pathfinder {
 			}
 		}
 		gateMotor.rotate(90);
+	}
+
+	public void runSimpleCourse() {
+		navi.travelTo(0, 0, 15, this.currentStack);
+		this.currentStack = new Stack<Point>();
+		double widthX = 2;
+		double widthY = 10;
+		this.currentStack = generatePath(false, finishX, finishY, widthX,
+				widthY, this.currentStack);
+		int i = 0, f = 0;
+		while (!currentStack.isEmpty()) {
+			// if (!navi.hasBlock()) {
+
+			LCD.drawInt((int) (10 * currentStack.peek().x), 0, 6);
+			LCD.drawInt((int) (10 * currentStack.peek().y), 6, 6);
+			currentStack = navi.travelTo(currentStack.peek().x,
+					currentStack.peek().y, 15, currentStack);
+			currentStack.peek().setVisited();
+			backPedalStack.push(currentStack.pop());
+			i++;
+			f = i;
+			// }
+		}
 	}
 
 	public void setFinal(double finishX, double finishY) {
