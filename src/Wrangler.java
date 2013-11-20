@@ -1,5 +1,6 @@
 import java.util.Stack;
-
+import java.util.ArrayList;
+import java.util.ListIterator;
 import lejos.nxt.*;
 
 public class Wrangler {
@@ -8,12 +9,18 @@ public class Wrangler {
 	TwoWheeledRobot patbot;
 	ObjectDetection detect;
 	double finishX, finishY;
+	double redX1, redY1;
+	double redX2, redY2;
+	double startX, startY;
+	int widthX, widthY;
 	Stack<Point> currentStack;
 	Stack<Point> backPedalStack = new Stack<Point>();
 	Navigation navi;
 	LightLocalizer localizer;
 	UltraDisplay ultra;
 	NXTRegulatedMotor gateMotor;
+	ArrayList<Point> dangerPointsL = new ArrayList<Point>();
+	Point dangerPoints[] = new Point[12];
 
 	public Wrangler(Odometer odo, TwoWheeledRobot patbot,
 			ObjectDetection detect, // LightLocalizer localizer,
@@ -26,21 +33,56 @@ public class Wrangler {
 		// this.localizer = localizer;
 	}
 
-	public void setFinal(int finishX, int finishY) {
-		this.finishX = -finishX * 30.46;
-		this.finishY = -finishY * 30.46;
+	public void setStarter(double startX, double startY) {
+		this.startX = startX * 30.48;
+		this.startY = startY * 30.48;
 	}
 
-	public static Stack<Point> generatePath(boolean goToFinish, double finishX,
-			double finishY, double widthX, double widthY,
+	public void setFinal(double finishX, double finishY) {
+		this.finishX = finishX * 30.48;
+		this.finishY = finishY * 30.48;
+	}
+
+	public void setArenaSize(int widthX, int widthY) {
+		this.widthX = widthX;
+		this.widthY = widthY;
+	}
+
+	public void createDangerList(double redX1, double redY1, double redX2,
+			double redY2) {
+		int stepsX = (int) Math.round(Math.abs(redX2 - redX1) / 30.48);
+		int stepsY = (int) Math.round(Math.abs(redY2 - redY1) / 30.48);
+		for (int i = 0; i < stepsX; i++) {
+			for (int j = 0; j < stepsY; i++) {
+				this.dangerPointsL.add(new Point(this.redX1 + 30.48 * stepsX,
+						this.redY1 + 30.48 * stepsY, false));
+			}
+		}
+	}
+
+	private boolean isDangerous(Point currentPoint,
+			ArrayList<Point> dangerousPoints) {
+		ListIterator<Point> iter = dangerousPoints.listIterator();
+		Point nextPoint;
+		while (iter.hasNext()) {
+			nextPoint = iter.next();
+			if (Point.areSamePoints(currentPoint, nextPoint)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public Stack<Point> generatePath(boolean setPath, double endPointX,
+			double endPointY, double widthX, double widthY,
 			Stack<Point> firstStack) {
 		Stack<Point> generatedStack = firstStack;
 		Stack<Point> backpedalStack = new Stack<Point>();
-		double currentX = 0;// widthX*30.48;
-		double currentY = /* 0; */widthY * 30.48;
-		double displacementX = finishX * 30.48 - currentX;
-		double displacementY = finishY * 30.48 - currentY;
-		if (!goToFinish) {
+		double currentX = this.startX;
+		double currentY = this.startY;
+		double displacementX = endPointX - currentX;
+		double displacementY = endPointY - currentY;
+		if (setPath) {
 			int i;
 			if (currentX < (widthX * 30.48) / 2) {
 				i = 0;
@@ -48,18 +90,13 @@ public class Wrangler {
 				i = 1;
 			}
 			while (widthY >= 0) {
-				System.out.println("1");
 				if (i % 2 == 0) {
-					System.out.println("2");
 					for (int j = (int) widthX; j >= 0; j--) {
-						System.out.println("3");
 						generatedStack.push(new Point((j) * 30.48, Math
 								.abs(currentY - widthY * 30.48), false));
 					}
 				} else {
-					System.out.println("4");
 					for (int j = 0; j <= (int) widthX; j++) {
-						System.out.println("5");
 						generatedStack.push(new Point((j) * 30.48, Math
 								.abs(currentY - widthY * 30.48), false));
 					}
@@ -68,16 +105,12 @@ public class Wrangler {
 				widthY--;
 				i++;
 			}
-
 		} else {
 			int stepsX = (int) Math.abs(Math.round(displacementX / 30.48));
 			int stepsY = (int) Math.abs(Math.round(displacementY / 30.48));
 			for (int i = 0; i <= stepsY; i++) {
-				System.out.println("6");
 				if (i % 2 == 0) {
-					System.out.println("7");
-					if (finishX != (displacementX + currentX)) {
-						System.out.println("8");
+					if (endPointX != (displacementX + currentX)) {
 						currentX += displacementX / stepsX;
 						generatedStack
 								.push(new Point(currentX, currentY, false));
@@ -87,7 +120,7 @@ public class Wrangler {
 					}
 				}
 				if (i % 2 == 1) {
-					if (finishY != displacementY + currentY) {
+					if (endPointY != displacementY + currentY) {
 						currentY += displacementY / stepsY;
 						generatedStack
 								.push(new Point(currentX, currentY, false));
@@ -103,35 +136,42 @@ public class Wrangler {
 		}
 		return generatedStack;
 	}
-	public void runSimpleCourse() {
-		navi.travelTo(0, 0, 15, this.currentStack);
-		this.currentStack = new Stack<Point>();
-		double widthX = 2;
-		double widthY = 10;
-		this.finishX = 1;
-		this.finishY = 5;
-		
-		this.currentStack = generatePath(false, finishX, finishY, widthX, widthY,
-				this.currentStack);
-		this.currentStack = generatePath(true, finishX, finishY, widthX, widthY, this.currentStack);
-		int i = 0, f = 0;
-		while (!currentStack.isEmpty()) {
-			// if (!navi.hasBlock()) {
-			LCD.drawInt((int) (10 * currentStack.peek().x), 0, 6);
-			LCD.drawInt((int) (10 * currentStack.peek().y), 6, 6);
-			currentStack = navi.travelTo(currentStack.peek().x, currentStack.peek().y, 15,
-					currentStack);
-			// currentStack.peek().setVisited();
-			backPedalStack.push(currentStack.pop());
-			LCD.drawString("Popping", 5, 0);
-			i++;
-			f = i;
-			// }
-		}
-	}
 
-	public void setFinal(double finishX, double finishY) {
-		this.finishX = finishX * 30.46;
-		this.finishY = finishY * 30.46;
+	public void runSimpleCourse() {
+		// navi.travelTo(0, 0, 15, this.currentStack);
+		this.currentStack = new Stack<Point>();
+		/*
+		 * int widthX = 2; int widthY = 10; double startX = 0; double startY =
+		 * 0; double finishX = 1; double finishY = 5;
+		 * 
+		 * setArenaSize(widthX, widthY); setFinal(finishX, finishY);
+		 * setStarter(startX, startY);
+		 */
+
+		this.currentStack = generatePath(true, this.finishX, this.finishY,
+				this.widthX, this.widthY, this.currentStack);
+		this.currentStack = generatePath(false, this.finishX, this.finishY,
+				this.widthX, this.widthY, this.currentStack);
+		int i = 0, f = 0;
+		while (!this.currentStack.isEmpty()) {
+			// if (!navi.hasBlock()) {
+			if (!isDangerous(this.currentStack.peek(), this.dangerPointsL)) {
+				LCD.drawInt((int) (10 * this.currentStack.peek().x), 0, 6);
+				LCD.drawInt((int) (10 * this.currentStack.peek().y), 6, 6);
+				this.currentStack = navi.travelTo(currentStack.peek().x,
+						currentStack.peek().y, 15, currentStack);
+				currentStack.peek().setVisited();
+				this.backPedalStack.push(currentStack.pop());
+				LCD.drawString("Popping", 5, 0);
+				i++;
+				f = i;
+				// }
+			} else {
+				this.currentStack.pop();
+				this.currentStack = generatePath(false, currentStack.peek().x,
+						currentStack.peek().y, widthX, widthY,
+						this.currentStack);
+			}
+		}
 	}
 }

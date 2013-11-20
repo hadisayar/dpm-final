@@ -73,7 +73,7 @@ public class Navigation {
 		this.robot.stop(0);
 		// 1 second cat-nap
 		try {
-			Thread.sleep(1000);
+			Thread.sleep(200);
 		} catch (InterruptedException e) {
 			// there is nothing to be done here because it is not expected
 			// that the odometer will be interrupted by another thread
