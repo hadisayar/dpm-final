@@ -15,7 +15,7 @@ public class Startup {
 
 		double finalX = 2, finalY = 7;
 		double startX = 0, startY = 0;
-		double redX1 = 3, redX2 = 5, redY1 = 4, redY2 = 7;
+		double redX1 = 1, redX2 = 4, redY1 = 2, redY2 = 5;
 
 		if (useBluetooth) {
 			int safeZ[];
@@ -100,10 +100,12 @@ public class Startup {
 		// use Pathfinder here to perform its task.
 		// newBot.stop(0);
 		// odometer.setTheta(0);
-		pathfinder.createDangerList(redX1, redY1, redX2, redY2);
 		pathfinder.setFinal(finalX, finalY);
-		pathfinder.setArenaSize(2, 10);
+		pathfinder.setArenaSize(2, 6);
 		pathfinder.setStarter(startX, startY);
+		pathfinder.setRedZone(redX1, redY1, redX2, redY2);
+		pathfinder.createDangerList();
+		pathfinder.generateSetPath();
 		pathfinder.runSimpleCourse();
 	}
 }

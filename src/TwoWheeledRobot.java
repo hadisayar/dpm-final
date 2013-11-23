@@ -98,7 +98,9 @@ public class TwoWheeledRobot {
 
 	// stop method
 	public void stop(int f) {
-			leftMotor.stop();
+			leftMotor.setAcceleration(1000);
+			rightMotor.setAcceleration(1000);
+			leftMotor.stop(true);
 			rightMotor.stop();
 	}
 
