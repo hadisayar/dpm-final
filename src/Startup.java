@@ -14,15 +14,15 @@ public class Startup {
 		boolean useBluetooth = false;
 
 		double finalX = 2, finalY = 7;
-		double startX = 0, startY = 0;
-		double redX1 = 1, redX2 = 4, redY1 = 2, redY2 = 5;
+		double startX = 2, startY = 6;
+		double redX1 = 0, redY1 = 3, redX2 = 1, redY2 = 5;
 
 		if (useBluetooth) {
 			int safeZ[];
 			int dangerZ[];
 			int role;
 			int startingCorner;
-			
+			//TODO Set ODOMETER For Starting Corner
 			bluetooth.BluetoothConnection blue = new bluetooth.BluetoothConnection();
 			startX = blue.getTransmission().startingCorner.getX();
 			startY = blue.getTransmission().startingCorner.getY();
