@@ -4,18 +4,26 @@
 
 import lejos.nxt.UltrasonicSensor;
 
-public class UltraDisplay extends Thread {
+public class UltraSensor extends Thread {
 	private static final long DISPLAY_PERIOD = 20;
 	private UltrasonicSensor us ;//= new UltrasonicSensor(SensorPort.S2);
 	private int distance;
 
 	// constructor
-	public UltraDisplay(UltrasonicSensor us) {
+	 /**
+	  * Constructor
+	  * @param us
+	  */
+	public UltraSensor (UltrasonicSensor us) {
 		this.us = us;
 		//this.distance = distance;
 	}
 
 	// run method (required for Thread)
+
+	 /**
+	  * Runs Ultrasonic + Display
+	  */
 	public void run() {
 		long displayStart, displayEnd;
 	
@@ -48,6 +56,10 @@ public class UltraDisplay extends Thread {
 		}
 	}
 
+	 /**
+	  * Returns Distance
+	  * @return
+	  */
 	public int getDist() {
 		return this.distance;
 	}

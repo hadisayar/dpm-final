@@ -10,13 +10,29 @@ import bluetooth.PlayerRole;
 import bluetooth.StartCorner;
 
 public class Startup {
+
+	/**
+	 * 
+	 * @param args
+	 */
 	public static void main(String[] args) {
+		//Set if it uses Bluetooth Program
 		boolean useBluetooth = false;
-
+		
 		double finalX = 2, finalY = 7;
-		double startX = 2, startY = 6;
-		double redX1 = 0, redY1 = 3, redX2 = 1, redY2 = 5;
-
+		double startX = 0, startY = 0;
+		int startID = 1;
+		double redX1 = 0, redY1 = 8, redX2 = 8, redY2 = 8;
+		//TODO: GreenZone avoidance
+		double greenX1 = 3, greenY1 = 3, greenX2 = 6, greenY2 = 4;
+		//Before it localizes
+		double robotWheelRadii = 1.98, robotWidth= 18.62;
+		//After it localizes
+		double robotWheelRadiiSecond = 1.98, robotWidthSecond = 18.62;
+		//Size of the field
+		int widthX = 2, widthY = 2;
+		boolean [] update = {true, true, true};
+		
 		if (useBluetooth) {
 			int safeZ[];
 			int dangerZ[];
@@ -24,6 +40,7 @@ public class Startup {
 			int startingCorner;
 			//TODO Set ODOMETER For Starting Corner
 			bluetooth.BluetoothConnection blue = new bluetooth.BluetoothConnection();
+			startID = blue.getTransmission().startingCorner.getId();
 			startX = blue.getTransmission().startingCorner.getX();
 			startY = blue.getTransmission().startingCorner.getY();
 			role = blue.getTransmission().role.getId();
@@ -44,6 +61,10 @@ public class Startup {
 			Sound.systemSound(false, 2);
 			finalX = Math.abs(safeZ[2] - safeZ[0]) / 2;
 			finalY = Math.abs(safeZ[3] - safeZ[1]) / 2;
+			greenX1 = safeZ[0];
+			greenY1 = safeZ[1];
+			greenX2 = safeZ[2];
+			greenY2 = safeZ[3];
 			redX1 = dangerZ[0];
 			redY1 = dangerZ[1];
 			redX2 = dangerZ[2];
@@ -56,6 +77,7 @@ public class Startup {
 		Button.waitForAnyPress();
 
 		TwoWheeledRobot newBot = new TwoWheeledRobot(Motor.A, Motor.B);
+		newBot.setRobotParts(robotWheelRadii, robotWidth);
 		NXTRegulatedMotor gateMotor = Motor.C;
 		// Retrieve the bluetooth signal and identify if the robot will be a
 		// builder or a garbage collector
@@ -63,7 +85,7 @@ public class Startup {
 		// initiate the two sensors that will be taken in as input for the
 		// odometry correction
 		final ColorSensor leftLS = new ColorSensor(SensorPort.S1);
-		// final ColorSensor rightLS = new ColorSensor(SensorPort.S2);
+		final ColorSensor rightLS = new ColorSensor(SensorPort.S2);
 
 		// ultrasonic sensor
 		final UltrasonicSensor us = new UltrasonicSensor(SensorPort.S3);
@@ -73,39 +95,90 @@ public class Startup {
 		// Initiate the objects for the odometer, the display and odometry
 		// correction
 		Odometer odometer = new Odometer(newBot, true);
-		// OdometryCorrection odometryCorrection = new
-		// OdometryCorrection(odometer, leftLS, rightLS);
+		odometer.setRobotParts(robotWheelRadii, robotWidth);
 
 		LCDInfo lcd = new LCDInfo(odometer);
 
 		ObjectDetection detect = new ObjectDetection(detectionLS, us);
 
 		// initiate the localization object and perform the localization.
-		/*
-		 * USLocalizer usl = new USLocalizer(odometer, us,
-		 * USLocalizer.LocalizationType.FALLING_EDGE); usl.doLocalization();
-		 */
-		UltrasonicSensor us2 = new UltrasonicSensor(SensorPort.S3);
-		UltraDisplay usd = new UltraDisplay(us2);
+		USLocalizer usl = new USLocalizer(odometer, us,
+				USLocalizer.LocalizationType.FALLING_EDGE); usl.doLocalization();
+		//UltrasonicSensor us2 = new UltrasonicSensor(SensorPort.S3);
+		UltraSensor usd = new UltraSensor(us);
 		// usd.start();
 		// Navigation turn = new Navigation(odometer,detect, usd);
 		// turn.turnTo(Math.toRadians(-70));
+		
+		Navigation nav = new Navigation(odometer, usd);
+		LightLocalizer lsl = new LightLocalizer(odometer, leftLS, rightLS, nav);
+		lsl.doLocalization();
+		odometer.setPosition(computePosition(startID, (int) widthX+2), update);
+		
+		newBot.setRobotParts(robotWheelRadiiSecond, robotWidthSecond);
+		odometer.setRobotParts(robotWheelRadiiSecond, robotWidthSecond);
+		
+		//set the current position of the robot
+		//double[] position = computePosition(4 , fieldSize );
+		//boolean[]  updateOdo = {true, true, true};
+		//the final updated position of the odometer with respect to the initial starting tile
+		//odometer.setPosition(position, updateOdo);
 
-		// LightLocalizer lsl = new LightLocalizer(odometer, leftLS);
-		// lsl.doLocalization();
-
-		Wrangler pathfinder = new Wrangler(odometer, newBot, detect, /* lsl, */
-		usd, gateMotor);
-
-		// use Pathfinder here to perform its task.
-		// newBot.stop(0);
-		// odometer.setTheta(0);
+		Wrangler pathfinder = new Wrangler(odometer, newBot, detect, usd, gateMotor);
+		//OdometryCorrection corrector = new OdometryCorrection(odometer, leftLS, rightLS, newBot, pathfinder);
+		//corrector.start();
+		
+		try {
+			Thread.sleep(5000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		pathfinder.setFinal(finalX, finalY);
-		pathfinder.setArenaSize(2, 6);
+		pathfinder.setArenaSize(widthX, widthY);
 		pathfinder.setStarter(startX, startY);
 		pathfinder.setRedZone(redX1, redY1, redX2, redY2);
 		pathfinder.createDangerList();
 		pathfinder.generateSetPath();
 		pathfinder.runSimpleCourse();
+	}
+
+	// the assumption is that the field will be a square
+	/**
+	 * ComputePosition
+	 * @param tile
+	 * @param gridsize
+	 * @return
+	 */
+	public static double[] computePosition(int tile, int gridsize) {
+		// pos has the format {x, y, theta}
+		double[] pos = new double[3];
+		double tileLength = 30.48;
+
+		// Tile numbers reflect the specifications that were provided in the
+		// specification document.
+		if (tile == 1) {
+			// set theta first
+			pos[2] = 0;
+			// set y position
+			pos[1] = 0 * tileLength;
+			pos[0] = 0;
+		} else if (tile == 2) {
+			pos[2] = 270;
+			pos[1] = 0;
+			// x will be different
+			pos[0] = (gridsize - 2) * tileLength;
+
+		} else if (tile == 3) {
+			pos[2] = 180;
+			pos[1] = (gridsize - 2) * tileLength;
+			pos[0] = pos[1];
+		} else if (tile == 4) {
+			pos[2] = 90;
+			pos[1] = (gridsize - 2) * tileLength;
+			pos[0] = 0;
+		}
+
+		return pos;
 	}
 }

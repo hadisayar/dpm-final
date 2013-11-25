@@ -18,38 +18,68 @@ public class Wrangler {
 	Stack<Point> backPedalStack = new Stack<Point>();
 	Navigation navi;
 	LightLocalizer localizer;
-	UltraDisplay ultra;
+	UltraSensor ultra;
 	NXTRegulatedMotor gateMotor;
 	ArrayList<Point> dangerPointsL = new ArrayList<Point>();
 
 	// Point dangerPoints[] = new Point[12];
 
+	/**
+	 * 
+	 * @param odo
+	 * @param patbot
+	 * @param detect
+	 * @param ultra
+	 * @param gateMotor
+	 */
 	public Wrangler(Odometer odo, TwoWheeledRobot patbot,
 			ObjectDetection detect, // LightLocalizer localizer,
-			UltraDisplay ultra, NXTRegulatedMotor gateMotor) {
+			UltraSensor ultra, NXTRegulatedMotor gateMotor) {
 		this.odo = odo;
 		this.patbot = patbot;
 		this.detect = detect;
 		this.ultra = ultra;
-		this.navi = new Navigation(this.odo/* , this.detect, this.ultra */);
+		this.navi = new Navigation(this.odo/* , this.detect*/, this.ultra, this);
 		// this.localizer = localizer;
 	}
 
+	/**
+	 * Setter for Start Position
+	 * @param startX
+	 * @param startY
+	 */
 	public void setStarter(double startX, double startY) {
 		this.startX = startX;
 		this.startY = startY;
 	}
 
+	/**
+	 * Setter for Final Position
+	 * @param finishX
+	 * @param finishY
+	 */
 	public void setFinal(double finishX, double finishY) {
 		this.finishX = finishX;
 		this.finishY = finishY;
 	}
 
+	/**
+	 * Setter for ArenaSize
+	 * @param widthX
+	 * @param widthY
+	 */
 	public void setArenaSize(int widthX, int widthY) {
 		this.widthX = widthX;
 		this.widthY = widthY;
 	}
 	
+	/**
+	 * Sets original RedZone
+	 * @param redX1
+	 * @param redY1
+	 * @param redX2
+	 * @param redY2
+	 */
 	public void setRedZone(double redX1, double redY1, double redX2, double redY2){
 		this.redX1 = redX1;
 		this.redY1 = redY1;
@@ -57,6 +87,9 @@ public class Wrangler {
 		this.redY2 = redY2;		
 	}
 
+	/**
+	 * Creates the initial DangerList
+	 */
 	public void createDangerList() {
 		int stepsX = (int) Math.round(Math.abs(this.redX2 - this.redX1));
 		int stepsY = (int) Math.round(Math.abs(this.redY2 - this.redY1));
@@ -67,6 +100,13 @@ public class Wrangler {
 		}
 	}
 	
+	/**
+	 * Inserts new RedZone into DangerList
+	 * @param redX1
+	 * @param redY1
+	 * @param redX2
+	 * @param redY2
+	 */
 	public void insertIntoDangerList(double redX1, double redY1,
 			double redX2, double redY2) {
 		int stepsX = (int) Math.round(Math.abs(redX2 - redX1));
@@ -78,6 +118,11 @@ public class Wrangler {
 		}
 	}
 
+	/**
+	 * Is the point Dangerous
+	 * @param currentPoint
+	 * @return
+	 */
 	private boolean isDangerous(Point currentPoint) {
 		ListIterator<Point> iter = this.dangerPointsL.listIterator();
 		Point nextPoint;
@@ -90,6 +135,9 @@ public class Wrangler {
 		return false;
 	}
 
+	/**
+	 * Generates the initial Set Path
+	 */
 	public void generateSetPath() {
 		double currentX = this.startX;
 		double currentY = this.startY;
@@ -118,6 +166,16 @@ public class Wrangler {
 		}
 	}
 	
+	/**
+	 * Generates a non-Set Path
+	 * @param finish
+	 * @param startPointX
+	 * @param startPointY
+	 * @param endPointX
+	 * @param endPointY
+	 * @param firstStack
+	 * @return
+	 */
 	public Stack<Point> generatePath(boolean finish, double startPointX,
 			double startPointY, double endPointX, double endPointY, Stack<Point> firstStack) {
 		Stack<Point> generatedStack = firstStack;
@@ -170,7 +228,10 @@ public class Wrangler {
 
 		return generatedStack;
 	}
-	
+
+	/**
+	 * 
+	 */
 	public void runSimpleCourse() {
 		Point o = new Point();
 		while (!this.currentStack.isEmpty()) {
@@ -180,45 +241,62 @@ public class Wrangler {
 				// navi move...
 				LCD.clear(5);
 				LCD.drawString(this.currentStack.peek().pointToTV(), 0, 5);
-				this.currentStack = navi.travelTo(this.currentStack.peek().x*30.48, this.currentStack.peek().y*30.48, 15, this.currentStack);
+				this.currentStack = navi.travelTo(this.currentStack.peek().x*30.48, this.currentStack.peek().y*30.48, 15, this.currentStack, this.backPedalStack);
 				//
 				o = this.currentStack.peek();
 				this.backPedalStack.push(this.currentStack.pop());
 			} else {
 				this.currentStack.pop();
-				Point nextP = this.currentStack.peek();
-				if (isDangerous(Point.upAdjacentPoint(this.backPedalStack.peek()))
-						|| isDangerous(Point.downAdjacentPoint(this.backPedalStack.peek()))) {
-					if (this.backPedalStack.peek().x <= (this.redX1 + this.redX2) / 2) {/*
+				if (!currentStack.isEmpty()){
+					Point nextP = this.currentStack.peek();
+					if (isDangerous(Point.upAdjacentPoint(this.backPedalStack.peek()))
+							|| isDangerous(Point.downAdjacentPoint(this.backPedalStack.peek()))) {
+						if (this.backPedalStack.peek().x <= (this.redX1 + this.redX2) / 2) {/*
 						System.out.print("\t" + Point.upAdjacentPoint(this.backPedalStack.peek()).pointToTV());
 						System.out
 								.print("\t"	+ Point.downAdjacentPoint(this.backPedalStack.peek()).pointToTV());*/
-						this.currentStack.push(Point.leftAdjacentPoint(this.backPedalStack.peek()));
-						this.backPedalStack.push(Point.leftAdjacentPoint(this.backPedalStack.peek()));
-					} else {/*
+							this.currentStack.push(Point.leftAdjacentPoint(this.backPedalStack.peek()));
+							this.backPedalStack.push(Point.leftAdjacentPoint(this.backPedalStack.peek()));
+						} else {/*
 						System.out.print("\t" + Point.upAdjacentPoint(this.backPedalStack.peek()).pointToTV());
 						System.out.print("\t" + Point.downAdjacentPoint(this.backPedalStack.peek()).pointToTV());*/
-						this.currentStack.push(Point.rightAdjacentPoint(this.backPedalStack.peek()));
-						this.backPedalStack.push(Point.rightAdjacentPoint(this.backPedalStack.peek()));
-					}
-				} else if (isDangerous(Point.rightAdjacentPoint(this.backPedalStack.peek()))
-						|| isDangerous(Point.leftAdjacentPoint(this.backPedalStack.peek()))) {
-					if (this.backPedalStack.peek().y < (this.redY1 + this.redY2) / 2) {/*
+							this.currentStack.push(Point.rightAdjacentPoint(this.backPedalStack.peek()));
+							this.backPedalStack.push(Point.rightAdjacentPoint(this.backPedalStack.peek()));
+						}
+					} else if (isDangerous(Point.rightAdjacentPoint(this.backPedalStack.peek()))
+							|| isDangerous(Point.leftAdjacentPoint(this.backPedalStack.peek()))) {
+						if (this.backPedalStack.peek().y < (this.redY1 + this.redY2) / 2) {/*
 						System.out.print("\t" + Point.leftAdjacentPoint(this.backPedalStack.peek()).pointToTV());
 						System.out.print("\t" + Point.rightAdjacentPoint(this.backPedalStack.peek()).pointToTV());*/
-						this.currentStack.push(Point.downAdjacentPoint(this.backPedalStack.peek()));
-						backPedalStack.push(Point.downAdjacentPoint(this.backPedalStack.peek()));
-					} else {/*
+							this.currentStack.push(Point.downAdjacentPoint(this.backPedalStack.peek()));
+							backPedalStack.push(Point.downAdjacentPoint(this.backPedalStack.peek()));
+						} else {/*
 						System.out.print("\t" + Point.leftAdjacentPoint(this.backPedalStack.peek()).pointToTV());
 						System.out.print("\t" + Point.rightAdjacentPoint(this.backPedalStack.peek()).pointToTV());*/
-						this.currentStack.push(Point.upAdjacentPoint(this.backPedalStack.peek()));
-						this.backPedalStack.push(Point.upAdjacentPoint(this.backPedalStack.peek()));
+							this.currentStack.push(Point.upAdjacentPoint(this.backPedalStack.peek()));
+							this.backPedalStack.push(Point.upAdjacentPoint(this.backPedalStack.peek()));
+						}
 					}
+					this.currentStack = generatePath(false, o.x, o.y, nextP.x, nextP.y,
+							this.currentStack);
 				}
-				this.currentStack = generatePath(false, o.x, o.y, nextP.x, nextP.y,
-						this.currentStack);
 			}
 		}
 	}	
 
+	/**
+	 * 
+	 * @return
+	 */
+	public boolean isTurning(){
+		return navi.isTurning();
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	public Navigation getNav(){
+		return this.navi;
+	}
 }
